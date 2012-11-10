@@ -4,47 +4,60 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "zlog.h"
+#include <assert.h>
+#include "thread_pool.h"
+
+zlog_category_t * category;
+buffer_class_t buffer;
+
+void *produce (void *args) {
+	zlog_debug (category, "Producing %x by %u", args, pthread_self ());
+	buffer_entry_t *entry = (buffer_entry_t *)malloc(sizeof(buffer_entry_t));
+	entry->global_seq_id = (int)args;
+	buffer.produce (&buffer, entry);
+	free (entry);
+}
+
+void *consume (void *args) {
+	//zlog_debug (category, "Consuming %x by %u", args, pthread_self ());
+	buffer_entry_t* entry = buffer.consume (&buffer);
+	//zlog_debug (category, "Consumed %d", entry->global_seq_id);
+	if (entry != 0)
+		free (entry);
+}
 
 int main () {
-	buffer_config_t config = {.buffer_size = 20};
 
-	buffer_class_t* buffer = get_global_ring_buffer (&config);
+	int state = zlog_init("../zlog.conf");
+	assert (state == 0);
+    category = zlog_get_category("default");
+	assert (category != NULL);
+    zlog_debug (category, "Start!");
+
+
+	buffer_config_t config = {.buffer_size = 5};
+	init_ring_buffer (&buffer, &config);
 
 	int i;
 	int pid;
 
-	for (i = 0; i < 3; i++) {
-		printf ("Forking from %d\n", getpid ());
-		pid = fork ();
-		if (pid == 0) {
-			printf ("Forked %d\n", getpid ());
-			int j;
-			for (j = 0; j < 1000; j++) {
-				buffer_entry_t entry = {
-					.request = {
-						.client_id = getpid (),
-						.priority = 1,
-						.client_seq_id = j
-					},
-					.response = {
-						.worker_id = getpid (),
-					},
-					.global_seq_id = j,
-				};
-				buffer->produce (buffer, &entry);
-			}
-			exit (0);
-		}
+	thread_pool_t pool;
+	init_thread_pool (&pool, 20);
+
+	for (i = 0; i < 10; i++) {
+		pool.submit (&pool, produce, (void *)i);
 	}
 
-	printf ("Forking from %d\n", getpid ());
-
-	pid = fork ();
-	if (pid == 0) {
-		printf ("Forked %d\n", getpid ());
-		int i;
-		for (i = 0; i < 3000; i++) {
-			buffer_entry_t* entry = buffer->consume (buffer);
-		}
+	for (i = 0; i < 30; i++) {
+		pool.submit (&pool, consume, (void *)i);
 	}
+
+
+	sleep (3);
+
+	destroy_ring_buffer (&buffer);
+	destroy_thread_pool (&pool);
+
+	zlog_fini ();
 }

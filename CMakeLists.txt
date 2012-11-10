@@ -14,8 +14,12 @@ INCLUDE_DIRECTORIES (${ZLOG_INCLUDE_DIRS})
 LINK_DIRECTORIES (${ZLOG_LIBRARY_DIRS})
 
 
-ADD_EXECUTABLE (test_ring_buffer test_ring_buffer.c ring_buffer.c)
-TARGET_LINK_LIBRARIES (test_ring_buffer ${CMAKE_THREAD_LIBS_INIT})
 
-ADD_EXECUTABLE (test_thread_pool test_thread_pool.c thread_pool.c)
-TARGET_LINK_LIBRARIES (test_thread_pool zlog ${CMAKE_THREAD_LIBS_INIT})
+ADD_LIBRARY (thread_pool thread_pool.c)
+ADD_LIBRARY (ring_buffer ring_buffer.c)
+
+ADD_EXECUTABLE (test_ring_buffer test_ring_buffer.c)
+TARGET_LINK_LIBRARIES (test_ring_buffer ring_buffer thread_pool zlog ${CMAKE_THREAD_LIBS_INIT})
+
+ADD_EXECUTABLE (test_thread_pool test_thread_pool.c)
+TARGET_LINK_LIBRARIES (test_thread_pool thread_pool zlog ${CMAKE_THREAD_LIBS_INIT})

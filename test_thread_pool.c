@@ -9,7 +9,7 @@ zlog_category_t *category;
 
 
 void *dummy (void *args) {
-	zlog_debug (category, "PID %d, TID %u, ARG %s", (int)getpid (), (int)pthread_self (), (char *)args);
+	zlog_debug (category, "PID %d, TID %u, ARG %d", (int)getpid (), (int)pthread_self (), (int)args);
 
 }
 
@@ -28,13 +28,10 @@ int main () {
 
 	init_thread_pool (&pool, 20);
 	sleep(3);
-
-	pool.submit (&pool, dummy, (void *)"1");
-	pool.submit (&pool, dummy, (void *)"2");
-	pool.submit (&pool, dummy, (void *)"3");
-	pool.submit (&pool, dummy, (void *)"4");
-	pool.submit (&pool, dummy, (void *)"5");
-	pool.submit (&pool, dummy, (void *)"6");
+	int i;
+	for (i = 0; i < 10000; i++)	{
+		pool.submit (&pool, dummy, (void *)i);
+	}
 
 	sleep (3);
 	destroy_thread_pool (&pool);

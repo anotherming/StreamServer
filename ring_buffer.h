@@ -1,4 +1,4 @@
-
+#include "bool.h"
 #include "config.h"
 #include "request.h"
 #include "response.h"
@@ -6,13 +6,13 @@
 #include <pthread.h>
 
 typedef struct {
-	request_t request;
-	response_t response;
+	//request_t request;
+	//response_t response;
 	int global_seq_id;
 } buffer_entry_t;
 
 typedef struct {
-	buffer_entry_t *buffer;
+	buffer_entry_t *entries;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond_not_full;
 	pthread_cond_t cond_not_empty;
@@ -29,14 +29,12 @@ typedef struct {
 } buffer_config_t;
 
 typedef struct _buffer_class_t {
-	bool is_initialized;
-	int (*initialize) (struct _buffer_class_t *buffer_class, buffer_config_t *config);
-	int (*destroy) (struct _buffer_class_t *buffer_class);
 	int (*produce) (struct _buffer_class_t *buffer_class, buffer_entry_t *buffer_entry);
 	buffer_entry_t* (*consume) (struct _buffer_class_t *buffer_class);
-	buffer_entry_t* (*allocate_entry) ();
 	buffer_t buffer;
+	bool shutdown;
 } buffer_class_t;
 
 
-buffer_class_t* get_global_ring_buffer (buffer_config_t *config);
+int init_ring_buffer (buffer_class_t *buffer_class, buffer_config_t *config);
+int destroy_ring_buffer (buffer_class_t *buffer_class);
