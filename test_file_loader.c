@@ -44,6 +44,8 @@ int main () {
 		pool.submit (&pool, read, &loader);
 	}
 
+
+	sleep (1);
 	destroy_thread_pool (&pool);
 
 	destroy_file_loader (&loader);
