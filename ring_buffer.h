@@ -11,7 +11,7 @@ typedef struct {
 	int global_seq_id;
 } buffer_entry_t;
 
-typedef struct {
+typedef struct buffer_t {
 	buffer_entry_t *entries;
 	pthread_mutex_t mutex;
 	pthread_cond_t cond_not_full;
@@ -22,19 +22,21 @@ typedef struct {
 	int consumer_index;
 	int producer_index;
 
+	int consume_threshold;
+	int produce_threshold;
+
+	int (*produce) (struct buffer_t *buffer, buffer_entry_t *buffer_entry);
+	buffer_entry_t* (*consume) (struct buffer_t *buffer);
+
+	bool shutdown;
 } buffer_t;
 
 typedef struct {
 	int buffer_size;
+	int consume_threshold;
+	int produce_threshold;
 } buffer_config_t;
 
-typedef struct _buffer_class_t {
-	int (*produce) (struct _buffer_class_t *buffer_class, buffer_entry_t *buffer_entry);
-	buffer_entry_t* (*consume) (struct _buffer_class_t *buffer_class);
-	buffer_t buffer;
-	bool shutdown;
-} buffer_class_t;
 
-
-int init_ring_buffer (buffer_class_t *buffer_class, buffer_config_t *config);
-int destroy_ring_buffer (buffer_class_t *buffer_class);
+int init_ring_buffer (buffer_t *buffer, buffer_config_t *config);
+int destroy_ring_buffer (buffer_t *buffer);
