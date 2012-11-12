@@ -1,8 +1,12 @@
 #include "thread_pool_cluster.h"
 #include <assert.h>
 #include "zlog.h"
+#include <pthread.h>
+
 
 zlog_category_t *category;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+int count = 0;
 
 void *work (void *args) {
 	assert (args != NULL);
@@ -12,8 +16,9 @@ void *work (void *args) {
 	for (i = 0; i < MAXPOOL; i++)
 		if (cluster->masks[i] == true)
 			sum++;
-
-	//zlog_debug (category, "COUNT: %d", sum);
+	pthread_mutex_lock (&mutex);
+	zlog_debug (category, "COUNT: %d", count++);
+	pthread_mutex_unlock (&mutex);
 	sleep (1);
 	return NULL;
 }
