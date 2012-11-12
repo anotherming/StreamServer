@@ -29,6 +29,8 @@ task_t *_dequeue (task_queue_t *queue) {
 		queue->head = queue->head->next;
 	}
 
+	queue->count--;
+	assert (queue->count >= 0);
 	return ret;
 }
 
@@ -58,6 +60,7 @@ void _enqueue (task_queue_t *queue, void *(*fn) (void *), void *args) {
 
 	int status = sem_post (&queue->sem);
 	assert (status == 0);
+	queue->count++;
 }
 
 void *_thread_pool_worker (void *args) {
@@ -79,10 +82,11 @@ void *_thread_pool_worker (void *args) {
 
 		// Wait for queue operation
 		zlog_debug (category, "Thread %u is peeking new job.", pthread_self ());
-		int status = pthread_mutex_lock (&pool->tasks.mutex);
+		int status = pthread_mutex_lock (&pool->mutex);
 		assert (status == 0);
+		pool->working_count++;
 		task_t *task= _dequeue (&pool->tasks);
-		status = pthread_mutex_unlock (&pool->tasks.mutex);
+		status = pthread_mutex_unlock (&pool->mutex);
 		assert (status == 0);
 
 		// Do the job
@@ -91,6 +95,12 @@ void *_thread_pool_worker (void *args) {
 
 		//free here, malloc at _enqueue
 		free (task);
+
+		status = pthread_mutex_lock (&pool->mutex);
+		assert (status == 0);
+		pool->working_count--;
+		status = pthread_mutex_unlock (&pool->mutex);
+		assert (status == 0);
 	}
 
 	return NULL;
@@ -104,11 +114,11 @@ int _submit (thread_pool_t *pool, void *(*workload)(void *), void *args) {
 
 	zlog_debug (category, "Submitting new job.");
 
-	int status = pthread_mutex_lock (&pool->tasks.mutex);
+	int status = pthread_mutex_lock (&pool->mutex);
 	assert (status == 0);
 
 	_enqueue (&pool->tasks, workload, args);
-	status = pthread_mutex_unlock (&pool->tasks.mutex);
+	status = pthread_mutex_unlock (&pool->mutex);
 	assert (status == 0);
 
 	return 0;
@@ -129,10 +139,11 @@ int init_thread_pool (thread_pool_t *pool, int pool_size) {
 	// init task queue
 	pool->tasks.head = 0;
 	pool->tasks.tail = 0;
+	pool->tasks.count = 0;
 
 	// init mutex
 	int status;
-	status = pthread_mutex_init (&pool->tasks.mutex, NULL);
+	status = pthread_mutex_init (&pool->mutex, NULL);
 	assert (status == 0);
 
 	// init sem
@@ -142,6 +153,7 @@ int init_thread_pool (thread_pool_t *pool, int pool_size) {
 	// init all poolled threads
 	pool->threads = (pthread_t *)malloc(pool_size * sizeof (pthread_t));
 	assert (pool->threads != 0);
+	pool->working_count = 0;
 
 	int i;
 	for (i = 0; i < pool_size; i++) {
@@ -194,7 +206,7 @@ int destroy_thread_pool (thread_pool_t *pool) {
 	}
 
 	// Destroy mutex
-	status = pthread_mutex_destroy (&pool->tasks.mutex);
+	status = pthread_mutex_destroy (&pool->mutex);
 	assert (status == 0);
 
 	return 0;

@@ -1,3 +1,6 @@
+#ifndef THREAD_POOL_H
+#define THREAD_POOL_H
+
 #include <pthread.h>
 #include "bool.h"
 #include <semaphore.h>
@@ -13,22 +16,26 @@ typedef struct {
 	task_t *head;
 	task_t *tail;
 	sem_t sem;
-	pthread_mutex_t mutex;
+	int count;
 } task_queue_t;
 
 
 // For public usage
 
-typedef struct _thread_pool_t {
+typedef struct thread_pool_t {
 	int size;
 	pthread_t *threads;
 	task_queue_t tasks;
 	bool shutdown;
 
-	int (*submit) (struct _thread_pool_t *pool, void *(*workload)(void *), void *args);
+	pthread_mutex_t mutex;
+	int working_count;
+	int (*submit) (struct thread_pool_t *pool, void *(*workload)(void *), void *args);
 } thread_pool_t;
 
 
 
 int init_thread_pool (thread_pool_t *pool, int pool_size);
 int destroy_thread_pool (thread_pool_t *pool);
+
+#endif
