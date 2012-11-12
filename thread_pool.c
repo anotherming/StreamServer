@@ -8,7 +8,6 @@
 #include "bool.h"
 
 
-zlog_category_t *category;
 
 
 void *_thread_pool_worker (void *args);
@@ -38,6 +37,9 @@ void _enqueue (task_queue_t *queue, void *(*fn) (void *), void *args) {
 	assert (queue != NULL);
 	assert (fn != NULL);
 
+	zlog_category_t *category = zlog_get_category ("thread_pool");
+
+
 	// malloc here, free at _thread_pool_worker
 	task_t *task = (task_t *)malloc(sizeof (task_t));
 	assert (task != NULL);
@@ -62,6 +64,8 @@ void *_thread_pool_worker (void *args) {
 
 	assert (args != 0);
 	thread_pool_t *pool = (thread_pool_t *)args;
+
+	zlog_category_t *category = zlog_get_category ("thread_pool");
 
 	while (pool->shutdown == false) {
 		// Wait for new job
@@ -96,6 +100,8 @@ int _submit (thread_pool_t *pool, void *(*workload)(void *), void *args) {
 	assert (pool != NULL);
 	assert (workload != NULL);
 
+	zlog_category_t *category = zlog_get_category ("thread_pool");
+
 	zlog_debug (category, "Submitting new job.");
 
 	int status = pthread_mutex_lock (&pool->tasks.mutex);
@@ -113,7 +119,7 @@ int init_thread_pool (thread_pool_t *pool, int pool_size) {
 	assert (pool != NULL);
 	assert (pool_size > 0);
 
-	category = zlog_get_category ("thread_pool");
+	zlog_category_t *category = zlog_get_category ("thread_pool");
 	zlog_debug (category, "Initiating thread pool of size %d.", pool_size);
 
 	// init pool size and shutdown states
@@ -149,6 +155,7 @@ int init_thread_pool (thread_pool_t *pool, int pool_size) {
 
 int destroy_thread_pool (thread_pool_t *pool) {
 	assert (pool != NULL);
+	zlog_category_t *category = zlog_get_category ("thread_pool");
 
 	zlog_debug (category,"Destroying thread pool.");
 
