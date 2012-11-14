@@ -10,3 +10,5 @@ typedef struct {
 	// void *args
 } request_t;
 
+int encode_req (request_t *request, char *buffer);
+int decode_req (request_t *request, char *data, int len);
