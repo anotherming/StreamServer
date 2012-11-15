@@ -11,6 +11,13 @@ int init_socket_client (socket_manager_t *manager, int port, char *host);
 
 #define MAX_HOSTNAME 128
 #define MAX_CONN 1024
+#define MAX_BUFFER 1024
+#define MAX_EVENTS 1024
+
+typedef struct {
+	char buffer[MAX_BUFFER];
+	int head, tail, len;
+} socket_buffer_t;
 
 typedef struct socket_manager_t {
 	int epoll_descriptor;
@@ -24,8 +31,11 @@ typedef struct socket_manager_t {
 
 	bool shutdown;
 
-	int (*handle) (socket_manager_t *manager, int sd, void *data, int len);
-	int (*write) (socket_manager_t *manager, int sd, void *data, int len);
+	struct sockaddr_in name;
+
+
+	int (*handle) (socket_manager_t *manager, int sd, void *data, int len, void *args);
+	int (*write) (socket_manager_t *manager, int sd, void *data, int len, void *args);
 
 	int (*run) (socket_manager_t *manager);
 } socket_manager_t;
