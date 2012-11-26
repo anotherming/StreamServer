@@ -1,3 +1,6 @@
+#ifndef _FILELOADER_H
+#define _FILELOADER_H
+
 #include "bool.h"
 
 #define MAXFILES 128
@@ -19,4 +22,6 @@ int init_file_loader (file_loader_t *loader, int count, char *prefix, char **fil
 int destroy_file_loader (file_loader_t *loader);
 
 #define ENOTFOUND -1
-#define EOF 0
+//#define EOF 0
+
+#endif

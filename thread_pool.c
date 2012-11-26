@@ -103,7 +103,7 @@ void *_thread_pool_worker (void *args) {
 		assert (status == 0);
 	}
 
-	return NULL;
+	pthread_exit (NULL);
 }
 
 int _submit (thread_pool_t *pool, void *(*workload)(void *), void *args) {
@@ -183,6 +183,8 @@ int destroy_thread_pool (thread_pool_t *pool) {
 	}
 
 	for (i = 0; i < pool->size; i++) {
+		status = pthread_cancel (pool->threads[i]);
+		//assert (status == 0);
 		status = pthread_join (pool->threads[i], NULL);
 		assert (status == 0);
 	}

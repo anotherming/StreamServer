@@ -1,0 +1,23 @@
+
+
+[TEAM MEMBER]
+Hanwen Wu
+Ming Chen
+
+
+[HOW TO BUILD]
+
+This need "zlog" to build. It can be installed via GitHub https://github.com/HardySimpson/zlog
+
+After installed, type these:
+
+$.> cd build
+$./build> cmake ..
+$./build> make
+
+Then 
+
+$./build> ./test_socket_manager
+
+
+

@@ -1,23 +1,31 @@
+#ifndef _SOCKET_H
+#define _SOCKET_H
 
+#include "bool.h"
+#include "server.h"
+#include "client.h"
+//#include <sys/socket.h>
+//#include <sys/types.h>
+#include <netinet/in.h>
 
-
-int send_request (int sd, request_t *request);
-int read_request (int sd, request_t *request);
-int send_response (int sd, response_t *response);
-int read_response (int sd, response_t *response);
-
-int init_socket_server (scoket_manager_t *manager, int port);
-int init_socket_client (socket_manager_t *manager, int port, char *host);
 
 #define MAX_HOSTNAME 128
 #define MAX_CONN 1024
 #define MAX_BUFFER 1024
 #define MAX_EVENTS 1024
 
-typedef struct {
-	char buffer[MAX_BUFFER];
-	int head, tail, len;
-} socket_buffer_t;
+#define ERR_AGAIN -9
+
+// typedef struct {
+// 	char buffer[MAX_BUFFER];
+// 	int head, tail, len;
+// } socket_buffer_t;
+
+//setsockopt(s,SOL_SOCKET,SO_RCVBUF,(const char*)&nRecvBuf,sizeof(int));
+
+
+struct server_t;
+struct client_t;
 
 typedef struct socket_manager_t {
 	int epoll_descriptor;
@@ -32,52 +40,18 @@ typedef struct socket_manager_t {
 	bool shutdown;
 
 	struct sockaddr_in name;
+	struct server_t *server;
+	struct client_t *client;
 
+	int (*handle) (struct socket_manager_t *manager, int sd, void *data, int len, void *args);
+	int (*write) (struct socket_manager_t *manager, int sd, void *data, int len, void *args);
 
-	int (*handle) (socket_manager_t *manager, int sd, void *data, int len, void *args);
-	int (*write) (socket_manager_t *manager, int sd, void *data, int len, void *args);
-
-	int (*run) (socket_manager_t *manager);
+	int (*run) (struct socket_manager_t *manager);
 } socket_manager_t;
 
+int init_socket_server (socket_manager_t *manager, int port);
+int init_socket_client (socket_manager_t *manager, int port, char *host);
 
+int destroy_socket_manager (socket_manager_t *manager);
 
-//_read // for internal use
-/*
-	read...
-	handle ()... // user (I) will fill this handle with actual code. Like assign tasks to a worker thread.
-*/
-
-
-//_write
-/*
-	write (sd ....)
-*/
-
-
-//_run_server : init_socket_server will assign this to the "run"
-/*
-while (shutdown == false) {
-	struct epoll_event events;
-
-	int num = epoll_wait (... &events ...);
-
-	for (i = 0; i < num; i++) {
-		if (events[i].data.fd == main_sd)
-			accept...
-			add new sd to epoll
-			...
-		else 
-			_read ...
-	}
-
-}
-*/
-
-
-// _run_client : init_socket_client will assign this to the "run"
-
-
-
-
-
+#endif

@@ -16,7 +16,7 @@ int init_ring_buffer (buffer_t *buffer, buffer_config_t *config) {
 	assert (config != NULL);
 	assert (config->buffer_size > 0);
 	assert (config->consume_threshold <= config->buffer_size && config->consume_threshold >= 1);
-	assert (config->produce_threshold <= config->buffer_size && config->produce_threshold >= 1);
+	assert (config->produce_threshold < config->buffer_size && config->produce_threshold >= 0);
 
 
 	zlog_category_t *category = zlog_get_category ("ring_buffer");
@@ -72,8 +72,9 @@ int destroy_ring_buffer (buffer_t *buffer) {
 
 	int status;
 
-	status = pthread_mutex_lock (&buffer->mutex);
-	assert (status == 0);
+	// NOTES: Destroy any user before destroy ring buffer!
+	//status = pthread_mutex_lock (&buffer->mutex);
+	//assert (status == 0);
 
 	zlog_debug (category, "Destroying mutex.");
 

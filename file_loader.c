@@ -18,11 +18,14 @@ bool _exists (struct file_loader_t *loader, char *filename) {
 	assert (loader != NULL);
 
 	int i;
+	zlog_category_t *category = zlog_get_category ("default");
+	//zlog_info (category, "filename : %s", filename);
+
 	for (i = 0; i < loader->count; i++) {
 		if (strcmp (filename, loader->filenames[i]) == 0)
 			return true;
 	}
-
+	//zlog_info (category, "filename : %s, not exists.", filename);
 	return false;
 }
 
@@ -31,6 +34,8 @@ int _open (struct file_loader_t *loader, char *filename) {
 	assert (loader != NULL);
 
 	int i;
+	zlog_category_t *category = zlog_get_category ("default");
+	//zlog_info (category, "filename : %s", filename);
 	for (i = 0; i < loader->count; i++) {
 		if (strcmp (filename, loader->filenames[i]) == 0)
 			return loader->descriptors[i];
@@ -56,8 +61,8 @@ int _read (struct file_loader_t *loader, int fd, int offset, int count, void *bu
 	if (status == 0)
 		return EOF;
 
-	assert (status == count);
-	return 0;
+	assert (status <= count);
+	return status;
 }
 
 

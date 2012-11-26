@@ -14,7 +14,7 @@ buffer_t buffer;
 void *produce (void *args) {
 	zlog_debug (category, "Producing %x by %u", args, pthread_self ());
 	buffer_entry_t *entry = (buffer_entry_t *)malloc(sizeof(buffer_entry_t));
-	entry->global_seq_id = (int)args;
+	//entry->global_seq_id = (int)args;
 	buffer.produce (&buffer, entry);
 	free (entry);
 }

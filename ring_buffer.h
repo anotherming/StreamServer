@@ -1,14 +1,13 @@
+#ifndef _BUFFER_H
+#define _BUFFER_H
+
 #include "bool.h"
 #include "config.h"
-#include "request.h"
 #include "response.h"
-#include "bool.h"
 #include <pthread.h>
 
 typedef struct {
-	//request_t request;
-	//response_t response;
-	int global_seq_id;
+	response_t response;
 } buffer_entry_t;
 
 typedef struct buffer_t {
@@ -40,3 +39,7 @@ typedef struct {
 
 int init_ring_buffer (buffer_t *buffer, buffer_config_t *config);
 int destroy_ring_buffer (buffer_t *buffer);
+
+#endif
+
+

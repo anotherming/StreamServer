@@ -168,5 +168,5 @@ void *_moniter (void *args) {
 
 
 
-	return NULL;
+	pthread_exit (NULL);
 }
