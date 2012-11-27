@@ -6,6 +6,7 @@
 #include "file_loader.h"
 #include "socket_manager.h"
 #include <assert.h>
+#include "config.h"
 
 struct socket_manager_t;
 
@@ -15,6 +16,8 @@ typedef struct server_t {
 	file_loader_t loader;
 	struct socket_manager_t *socket;
 	pthread_t loop;
+
+	bool shutdown;
 
 	int (*run) (struct server_t *server);
 } server_t;

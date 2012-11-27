@@ -13,10 +13,7 @@ typedef struct client_t {
 	int priority;
 	
 	struct socket_manager_t *socket;
-
 	pthread_t loop;
-
-	bool play;
 
 	int (*run) (struct client_t *client);
 

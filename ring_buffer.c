@@ -6,9 +6,12 @@
 #include <string.h>
 #include "bool.h"
 #include "zlog.h"
+#include <sys/time.h>
+#include <errno.h>
 
 int _produce (buffer_t *buffer, buffer_entry_t *buffer_entry);
 buffer_entry_t* _consume (buffer_t *buffer);
+buffer_entry_t* _timed_consume (buffer_t *buffer, int seconds);
 buffer_entry_t* _allocate_entry ();
 
 int init_ring_buffer (buffer_t *buffer, buffer_config_t *config) {
@@ -54,6 +57,7 @@ int init_ring_buffer (buffer_t *buffer, buffer_config_t *config) {
 	// hooking methods
 	buffer->produce = _produce;
 	buffer->consume = _consume;
+	buffer->timed_consume = _timed_consume;
 	return 0;
 }
 
@@ -252,3 +256,89 @@ buffer_entry_t* _consume (buffer_t *buffer) {
 
 
 
+buffer_entry_t* _timed_consume (buffer_t *buffer, int seconds) {
+
+	assert (buffer != NULL);
+	zlog_category_t *category = zlog_get_category ("ring_buffer");
+	assert (category != NULL);
+
+	zlog_debug (category, "Consumer of TID %u", pthread_self ());
+
+	int status;
+	struct timespec   ts;
+	struct timeval    tp;
+
+ 	status = gettimeofday(&tp, NULL);
+ 	assert (status == 0);
+
+    // convert from timeval to timespec
+    ts.tv_sec  = tp.tv_sec;
+    ts.tv_nsec = tp.tv_usec * 1000;
+    ts.tv_sec += seconds;
+
+	// if shutdown
+	if (buffer->shutdown == true) {
+		zlog_debug (category, "Shutting down consumer.");
+		return 0;
+	}
+
+	// try to lock
+	zlog_debug (category, "Waiting for lock.");
+	status = pthread_mutex_lock (&buffer->mutex);      
+	assert (status == 0);
+	zlog_debug (category, "Locked.");
+
+	// wait for non-empty
+	while (buffer->count <= buffer->produce_threshold) {  
+		zlog_debug (category, "Buffer threshold not reached. Waiting for producers.");
+	    status = pthread_cond_timedwait (&buffer->cond_not_empty, &buffer->mutex, &ts);  
+
+		if (status == ETIMEDOUT) {
+			zlog_debug (category, "Wait timed out!");
+			status = pthread_mutex_unlock(&buffer->mutex);
+			assert (status == 0);
+
+			return NULL;
+		}
+
+	    // if shutdown
+	    if (buffer->shutdown == true) {
+	    	status = pthread_mutex_unlock (&buffer->mutex);
+	    	assert (status == 0);
+	    	return 0;
+	    }
+	} 
+
+	assert (buffer->count > buffer->produce_threshold);
+	//assert (buffer->count > 0);
+
+	// allocate entry
+	zlog_debug (category, "Reading from buffer.");
+	buffer_entry_t *entry = _allocate_entry ();
+
+	memcpy (entry, &(buffer->entries)[buffer->consumer_index], sizeof (buffer_entry_t));
+		
+
+	// update
+	zlog_debug (category, "Updating status.");
+	buffer->count--;
+	assert (buffer->count >= 0);
+	buffer->consumer_index = (buffer->consumer_index + 1) % buffer->size;
+	zlog_debug (category, "Count %d, PI %d, CI %d", buffer->count, buffer->producer_index, buffer->consumer_index);
+
+	// non full
+	if (buffer->count == buffer->produce_threshold) {  
+		zlog_debug (category, "Signalling non-full condition.");
+	    status = pthread_cond_broadcast (&buffer->cond_not_full);  
+	    assert (status == 0);
+	}  
+
+	// unlock
+	zlog_debug (category, "Finish reading. Unlock.");
+	status = pthread_mutex_unlock (&buffer->mutex);  
+	assert (status == 0);
+
+	
+
+	return entry;
+}

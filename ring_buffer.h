@@ -26,6 +26,7 @@ typedef struct buffer_t {
 
 	int (*produce) (struct buffer_t *buffer, buffer_entry_t *buffer_entry);
 	buffer_entry_t* (*consume) (struct buffer_t *buffer);
+	buffer_entry_t* (*timed_consume) (struct buffer_t *buffer, int seconds);
 
 	bool shutdown;
 } buffer_t;

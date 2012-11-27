@@ -1,6 +1,7 @@
 #include "server.h"
 #include "client.h"
 #include "socket_manager.h"
+#include "zlog.h"
 
 zlog_category_t *category;
 server_t server;
@@ -17,19 +18,24 @@ int main () {
     server.run (&server);
 
     int i, j;
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 1; i++) {
 		init_client (&client[i], i+1);
     	client[i].run (&client[i]);
     }
 
-    for (i = 0; i < 10; i++)
-        //for (j = 0; j < 100; j++)
-           client[i].seek (&client[i], "sw", 50);
+    for (i = 0; i < 1; i++) {
+        client[i].start (&client[i], "sw", true);
+        //usleep (100);
+        //client[i].seek (&client[i], "sw", 20);
+        //usleep (50);
+        //client[i].stop (&client[i], "sw");
+    }
 
 
-    sleep (30);
 
-    for (i = 0; i < 10; i++) {
+    sleep (10);
+
+    for (i = 0; i < 1; i++) {
     	destroy_client (&client[i]);
     }
 
