@@ -8,6 +8,8 @@
 #include "config.h"
 #include <string.h>
 
+extern void _mainwindow_draw (void *main_window, void *data, int len);
+
 // functions for socket manager
 int _client_handle (socket_manager_t *manager, int sd);
 int _write_request (int sd, request_t *request);
@@ -18,7 +20,7 @@ int _client_run (client_t *client);
 void* _do_client_run (void *client);
 
 // functions for client
-int _start_movie (client_t *client, char *name, bool repeat);
+int _start_movie (client_t *client, char *name, boolean repeat);
 int _stop_movie (client_t *client, char *name);
 int _seek_movie (client_t *client, char *name, int frame);
 int _show_movie (void *movie, int len);
@@ -66,7 +68,7 @@ int _read_response (int sd, response_t *response) {
 }
 
 
-int _start_movie (struct client_t *client, char *name, bool repeat) {
+int _start_movie (struct client_t *client, char *name, boolean repeat) {
 	assert (client != NULL);
 	assert (name != NULL);
 
@@ -194,6 +196,11 @@ int _client_handle (socket_manager_t *manager, int sd) {
 	}
 
 	_show_movie (response.data, response.len);
+
+	//assert (manager->client->draw != NULL);
+	//manager->client->draw (response.data, response.len);
+
+	mainwindow_draw (manager->client->main_window, response.data, response.len);
 
 	// free it
 	free (response.data);

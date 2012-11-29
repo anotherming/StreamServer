@@ -17,7 +17,7 @@ typedef struct server_t {
 	struct socket_manager_t *socket;
 	pthread_t loop;
 
-	bool shutdown;
+	boolean shutdown;
 
 	int (*run) (struct server_t *server);
 } server_t;

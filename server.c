@@ -31,11 +31,11 @@ typedef struct {
 	server_t *server;
 	unsigned int worker_id;
 	request_t request;
-	bool *shutdown;
+	boolean *shutdown;
 	pthread_mutex_t *mutex;
 } producer_arg_t;
 
-bool inline _check_movie (request_t *request, server_t *server) {
+boolean inline _check_movie (request_t *request, server_t *server) {
     char filename[256];
 
     // frame number is also checked
@@ -83,8 +83,8 @@ void* _server_producer (void *args) {
 	producer_arg_t *p = (producer_arg_t *)args;
 	server_t *server = p->server;
 	unsigned int worker_id = p->worker_id;
-	bool *shutdown = p->shutdown;
-	bool loop = p->request.repeat;
+	boolean *shutdown = p->shutdown;
+	boolean loop = p->request.repeat;
 
 	pthread_mutex_t *mutex = p->mutex;
 
@@ -217,7 +217,7 @@ void* _server_worker (void *args) {
     zlog_debug (category, "Worker: serve descripter %d.", sd);
 
     // producer shutdown signal
-    bool producer_shutdown = false;
+    boolean producer_shutdown = false;
     pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
     // worker id

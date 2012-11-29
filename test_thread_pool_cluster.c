@@ -22,7 +22,7 @@ void *work (void *args) {
 	sleep (1);
 	return NULL;
 }
-
+	
 int main () {
 	int state = zlog_init("../zlog.conf");
 	assert (state == 0);

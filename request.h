@@ -17,7 +17,7 @@ typedef struct {
 	unsigned int client_sd;
 	unsigned int priority;
 	unsigned char request[REQUEST_COMMAND_SIZE];
-	bool repeat;
+	boolean repeat;
 	unsigned int frame_number;
 	unsigned char movie[REQUEST_MOVIE_NAME_SIZE];
 } request_t;

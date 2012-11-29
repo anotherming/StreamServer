@@ -1,18 +1,17 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
-PROJECT (StreamServer C)
+PROJECT (StreamServer)
 
 SET (CMAKE_BUILD_TYPE DEBUG)
 
 FIND_PACKAGE (Threads REQUIRED)
+FIND_PACKAGE (Qt4 REQUIRED)
 
 SET (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -pthread")
 SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 
 FIND_LIBRARY (ZLOG NAMES zlog)
-MESSAGE (STATUS "${ZLOG_INCLUDE_DIRS} ${ZLOG_LIBRARY_DIRS}")
-INCLUDE_DIRECTORIES (${ZLOG_INCLUDE_DIRS})
-LINK_DIRECTORIES (${ZLOG_LIBRARY_DIRS})
-
+#INCLUDE_DIRECTORIES (${ZLOG_INCLUDE_DIRS})
+#LINK_DIRECTORIES (${ZLOG_LIBRARY_DIRS})
 
 
 ADD_LIBRARY (thread_pool thread_pool.c)
@@ -28,9 +27,44 @@ ADD_LIBRARY (request request.c)
 ADD_LIBRARY (response response.c)
 ADD_LIBRARY (sortlist sortlist.c)
 
-ADD_EXECUTABLE (test_socket_manager test_socket_manager.c)
-TARGET_LINK_LIBRARIES (test_socket_manager 
-	server client 
+ADD_EXECUTABLE (streamserver mainserver.c)
+TARGET_LINK_LIBRARIES (streamserver 
+	server 
+	socket 
+	file_loader 
+	${CMAKE_THREAD_LIBS_INIT} 
+	thread_pool_cluster 
+	ring_buffer 
+	sortlist 
+	zlog 
+	request 
+	response)
+
+#ADD_EXECUTABLE (test_socket_manager test_socket_manager.c)
+#TARGET_LINK_LIBRARIES (test_socket_manager 
+#	server client 
+#	socket 
+#	file_loader
+#	${CMAKE_THREAD_LIBS_INIT} 
+#	thread_pool_cluster 
+#	ring_buffer 
+#	sortlist
+#	zlog 
+#	request response)
+
+ADD_LIBRARY (mainwindow_wrapper mainwindow_wrapper.cpp)
+TARGET_LINK_LIBRARIES (client mainwindow_wrapper)
+
+QT4_WRAP_CPP (STREAM_CLIENT_MOC mainwindow.h)
+QT4_WRAP_UI (STREAM_CLINET_FORM mainwindow.ui)
+
+INCLUDE(${QT_USE_FILE})
+ADD_DEFINITIONS(${QT_DEFINITIONS})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+ADD_EXECUTABLE(streamclient main.cpp mainwindow.cpp ${STREAM_CLIENT_MOC} ${STREAM_CLINET_FORM})
+TARGET_LINK_LIBRARIES(streamclient 
+	${QT_LIBRARIES}
+	client 
 	socket 
 	file_loader
 	${CMAKE_THREAD_LIBS_INIT} 
@@ -38,7 +72,10 @@ TARGET_LINK_LIBRARIES (test_socket_manager
 	ring_buffer 
 	sortlist
 	zlog 
-	request response)
+	request 
+	response)
+
+
 
 
 ADD_EXECUTABLE (test_ring_buffer test_ring_buffer.c)

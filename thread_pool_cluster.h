@@ -3,14 +3,14 @@
 #define MAXPOOL 128
 typedef struct thread_pool_cluster_t {
 	thread_pool_t pools[MAXPOOL];
-	bool masks[MAXPOOL];
+	boolean masks[MAXPOOL];
 
 	int pool_size;
 	int extend_threshold;
 	int cycle_of_seconds;
 
 	pthread_mutex_t mutex;
-	bool shutdown;
+	boolean shutdown;
 
 	int (*submit) (struct thread_pool_cluster_t *cluster, void *(*workload)(void *), void *args);
 } thread_pool_cluster_t;

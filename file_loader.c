@@ -10,10 +10,10 @@
 
 int _open (struct file_loader_t *loader, char *filename);
 int _read (struct file_loader_t *loader, int fd, int offset, int count, void *buffer);
-bool _exists (struct file_loader_t *loader, char *filename);
+boolean _exists (struct file_loader_t *loader, char *filename);
 
 
-bool _exists (struct file_loader_t *loader, char *filename) {
+boolean _exists (struct file_loader_t *loader, char *filename) {
 	assert (filename != NULL);
 	assert (loader != NULL);
 

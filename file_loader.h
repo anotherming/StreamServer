@@ -13,7 +13,7 @@ typedef struct file_loader_t {
 	int *descriptors;
 	int count;
 
-	bool (*exists) (struct file_loader_t *loader, char *filename);
+	boolean (*exists) (struct file_loader_t *loader, char *filename);
 	int (*open) (struct file_loader_t *loader, char *filename);
 	int (*read) (struct file_loader_t *loader, int fd, int offset, int count, void *buffer);
 } file_loader_t;

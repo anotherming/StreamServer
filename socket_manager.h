@@ -8,15 +8,6 @@
 #include "config.h"
 
 
-#define MAX_HOSTNAME 128
-#define MAX_CONN 1024
-#define MAX_BUFFER 1024
-#define MAX_EVENTS 1024
-
-#define SOCK_RECV_BUFFER (60000 * 100)
-#define SOCK_SEND_BUFFER (60000 * 100)
-
-#define ERR_AGAIN -9
 
 
 struct server_t;
@@ -27,7 +18,7 @@ typedef struct socket_manager_t {
 	char host[MAX_HOSTNAME];
 	int main_sd;
 
-	bool shutdown;
+	boolean shutdown;
 
 	struct sockaddr_in name;
 	struct server_t *server;

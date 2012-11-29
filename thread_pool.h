@@ -26,7 +26,7 @@ typedef struct thread_pool_t {
 	int size;
 	pthread_t *threads;
 	task_queue_t tasks;
-	bool shutdown;
+	boolean shutdown;
 
 	pthread_mutex_t mutex;
 	int working_count;
