@@ -1,3 +1,6 @@
+#define _COMMAND_LINE
+
+
 #include "server.h"
 #include "client.h"
 #include "socket_manager.h"
@@ -6,6 +9,7 @@
 zlog_category_t *category;
 server_t server;
 client_t client[10];
+
 
 int main () {
 	int state = zlog_init("../zlog.conf");
@@ -18,24 +22,21 @@ int main () {
     server.run (&server);
 
     int i, j;
-    for (i = 0; i < 1; i++) {
+    for (i = 0; i < 10; i++) {
 		init_client (&client[i], i+1);
     	client[i].run (&client[i]);
     }
 
-    for (i = 0; i < 1; i++) {
+    for (i = 0; i < 10; i++) {
         client[i].start (&client[i], "sw", true);
-        //usleep (100);
-        //client[i].seek (&client[i], "sw", 20);
-        //usleep (50);
-        //client[i].stop (&client[i], "sw");
     }
 
+    client[1].stop (&client[1], "sw");
+    client[2].seek (&client[2], "sw", 50);
+    client[3].start (&client[3], "no", true);
+    sleep (5);
 
-
-    sleep (10);
-
-    for (i = 0; i < 1; i++) {
+    for (i = 0; i < 10; i++) {
     	destroy_client (&client[i]);
     }
 

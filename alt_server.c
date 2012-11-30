@@ -1,4 +1,4 @@
-#include "server.h"
+#include "alt_server.h"
 #include "request.h"
 #include <malloc.h>
 #include <string.h>
@@ -360,7 +360,7 @@ void* _server_consumer (void *args) {
 	while (server->shutdown == false) {
 
 		// consume an entry from buffer
-		entry = buffer->timed_consume (buffer, DISPATCH_TIME_THRESHOLD);
+		entry = buffer->consume (buffer);
 
 		if (entry != NULL) {
 			// store it in a temp list

@@ -3,6 +3,8 @@
 #include <QPainter>
 #include "client.h"
 #include "zlog.h"
+#include <QMessageBox>
+#include <QInputDialog>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -10,9 +12,20 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this); 
+    this->m_wrong = false;
+
     zlog_init("../zlog.conf");
 	category = zlog_get_category("default");
-    init_client (&client, 1);  
+
+    int priority = QInputDialog::getInteger(this, "Priority", "Please input a priority.");
+
+    int status = init_client (&client, priority);  
+    if (status < 0) {
+        QMessageBox msg (QMessageBox::Warning, "Warning", "Server is not running! About to exit!");
+        msg.exec();
+        zlog_fini ();
+        QApplication::quit();
+    }
 
     this->setAttribute (Qt::WA_PaintOutsidePaintEvent, true);
 
@@ -29,31 +42,75 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btPlay_clicked()
 {
-    client.start (&client, (char *)"sw", true);
+    QString text = this->ui->tPlay->text();
+    if (text.isEmpty() || text.isNull()) {
+        QMessageBox msg (QMessageBox::Warning, "Warning", "Please type a movie name!");
+        msg.exec();
+        return;
+    }
+
+
+    char *data = text.toAscii().data();
+    client.start (&client, data, true);
 }
+
 
 void MainWindow::on_btStop_clicked()
 {
-    client.stop (&client, (char *)"sw");
+    QString text = this->ui->tPlay->text();
+
+    if (text.isEmpty() || text.isNull()) {
+        QMessageBox msg (QMessageBox::Warning, "Warning", "Please type a movie name!");
+        msg.exec();
+        return;
+    }
+
+
+    char *data = text.toAscii().data();
+    client.stop (&client, data);
 
 }
 
 void MainWindow::on_btSeek_clicked()
 {
+    QString text = this->ui->tPlay->text();
 
+    if (text.isEmpty() || text.isNull()) {
+        QMessageBox msg (QMessageBox::Warning, "Warning", "Please type a movie name!");
+        msg.exec();
+        return;
+    }
+
+
+    char *data = text.toAscii().data();
+
+    QString frame = this->ui->tSeek->text();
+    int frame_number = frame.toInt();
+
+    client.seek (&client, data, frame_number);
 }
 
 void MainWindow::draw (void *data, int len) {
-    QPixmap pixmap;
-    pixmap.loadFromData((const uchar *)data,len,"PPM");
+    bool status = this->pixmap.loadFromData((const uchar *)data,len,"PPM");
+    assert (status == true);
 
-    this->pixmap = pixmap;
-    usleep (50);
     update ();
 }
 
 void MainWindow::paintEvent (QPaintEvent *event) {
+    //if ((event->rect()).isNull ())
+    //    return;
+    // if (this->m_wrong == true) {
+    //     QMessageBox msg (QMessageBox::Warning, "Warning", "Movie not found!");
+    //     msg.exec();
+    //     this->m_wrong = false;
+    //     return;
+    // }
+
 	QPainter painter (this);
 	QRect rect = this->ui->frMovie->contentsRect();
+    assert (rect.isNull () == false);
+    if (this->pixmap.isNull ())
+        return;
     painter.drawPixmap (rect, this->pixmap);
 }

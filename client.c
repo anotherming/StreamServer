@@ -8,7 +8,9 @@
 #include "config.h"
 #include <string.h>
 
-extern void _mainwindow_draw (void *main_window, void *data, int len);
+//extern void _mainwindow_draw (void *main_window, void *data, int len);
+//extern void mainwindow_wrong
+
 
 // functions for socket manager
 int _client_handle (socket_manager_t *manager, int sd);
@@ -191,7 +193,9 @@ int _client_handle (socket_manager_t *manager, int sd) {
 	zlog_info (category, "RESPONSE RECEIVED: %s", buffer);
 
 	// deal with not exist
-	if (response.len == (strlen (NSG_NOT_EXIST) + 1)) {
+	if (strcmp (MSG_NOT_EXIST, response.data) == 0) {
+		//mainwindow_wrong (manager->client->main_window);
+		zlog_info (category, "Movie not found!");
 		return 0;
 	}
 
@@ -200,8 +204,8 @@ int _client_handle (socket_manager_t *manager, int sd) {
 	//assert (manager->client->draw != NULL);
 	//manager->client->draw (response.data, response.len);
 
+	usleep (40000);
 	mainwindow_draw (manager->client->main_window, response.data, response.len);
-
 	// free it
 	free (response.data);
 }
@@ -219,7 +223,11 @@ int init_client (client_t *client, int priority) {
 	client->socket = (socket_manager_t *)malloc (sizeof (socket_manager_t));
 	assert (client->socket != NULL);
 
-	init_socket_client (client->socket, SERVER_PORT, "127.0.0.1");
+	int status = init_socket_client (client->socket, SERVER_PORT, "127.0.0.1");
+	
+	// server not up
+	if (status < 0)
+		return -1;
 
 	// hook
 	client->client_id = pthread_self ();

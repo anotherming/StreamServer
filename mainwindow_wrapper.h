@@ -1,8 +1,8 @@
 
 
-//#ifdef __cplusplus
-extern "C" {
-//#endif
-	void mainwindow_draw (void *main_window, void *data, int len);
 
+extern "C" {
+	void mainwindow_draw (void *main_window, void *data, int len);
+	void mainwindow_wrong (void *main_window);
 }
+

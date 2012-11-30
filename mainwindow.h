@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     void draw (void *data, int len);
+    //void wrong ();
 
     ~MainWindow();
 
@@ -35,6 +36,7 @@ private:
     client_t client;
     zlog_category_t *category;
     QPixmap pixmap;
+    bool m_wrong;
 
 };
 

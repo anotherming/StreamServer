@@ -6,7 +6,7 @@
 #define MOVIE_FRAME_BUFFER_SIZE 100000
 #define DISPATCH_ENTRY_THRESHOLD 10
 #define DISPATCH_TIME_THRESHOLD 1
-#define NSG_NOT_EXIST "Movie doesn't exist."
+#define MSG_NOT_EXIST "Movie doesn't exist."
 #define SERVER_PORT 8888
 
 

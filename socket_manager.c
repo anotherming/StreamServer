@@ -31,6 +31,7 @@ int init_socket_client (socket_manager_t *manager, int port, char *host) {
 	manager->port = port;
 	strcpy (manager->host, host);
 	manager->main_sd = socket (AF_INET, SOCK_STREAM, 0);
+	
 	assert (manager->main_sd > 0);
 
 	// resolve host address
@@ -48,7 +49,9 @@ int init_socket_client (socket_manager_t *manager, int port, char *host) {
     // connect
     zlog_debug (category, "Connecting to server.");
     int status = connect (manager->main_sd, (struct sockaddr *)&manager->name, sizeof(struct sockaddr_in));
-    assert (status >= 0);
+	// server not up
+	if (status < 0)
+		return -1;
 
     // change buffer
     int n = SOCK_RECV_BUFFER;
